@@ -1,0 +1,21 @@
+RESOURCE_GROUP="client-exxon-testing"
+REGION="eastus"
+STORAGE_ACCOUNT="suketexxonstorage"
+az storage account create --name $STORAGE_ACCOUNT \
+    --location $REGION \
+    --resource-group $RESOURCE_GROUP \
+    --sku Standard_LRS
+
+# Get Storage Key
+ACCESS_KEY=$(az storage account keys list --account-name $STORAGE_ACCOUNT --resource-group $RESOURCE_GROUP --output tsv |head -1 | awk '{print $3}')
+
+az storage container create  \
+    --name "input" \
+    --account-name $STORAGE_ACCOUNT \
+    --account-key $ACCESS_KEY
+
+az storage container create  \
+    --name "output" \
+    --account-name $STORAGE_ACCOUNT \
+    --account-key $ACCESS_KEY
+

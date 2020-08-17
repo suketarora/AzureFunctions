@@ -1,0 +1,45 @@
+# Create Temporary Environment Variables
+
+RGN='client-exxon-testing'
+LOC='eastus'
+SAN='exxonstoragesahil'
+FPN='MysqlToBlob'
+SUB='Hashmap Labs PAYG'
+KVN='suketKeyVault'
+secretName='snowflakeSecret'
+AppName='snowflake-connector'
+
+# Below we turn off history temporarily so that the password is not recorded (since it is sensitive information)
+USER='SUKET'
+set +o history
+PASSWORD='sCdGtHup2Fio8Rzs'
+set -o history
+ACCOUNT='xt25243.east-us-2.azure'
+WAREHOUSE='COMPUTE_WH'
+DATABASE='MY_DB'
+SCHEMA='PUBLIC'
+
+SFUSER=SUKET
+
+# Set the appropriate subscription
+az account set --subscription "$SUB"
+# Create a resource group
+az group create --name "$RGN" --location "$LOC"
+# Create a storage account
+az storage account create --name "$SAN" --location "$LOC" --resource-group "$RGN" --sku Standard_LRS
+# Create the function 
+az functionapp create --resource-group "$RGN" --os-type Linux --consumption-plan-location eastus --runtime python --name "$AppName" --storage-account "$SAN"
+# Install Azure Functions Python library (assume using python 3.6)
+pip install azure-functions
+# Create your azure function and navigate to its source root
+func init $FPN
+cd $FPN
+# Create a new function
+func new
+
+# Create the new keyvault
+az keyvault create --name "$KVN" --resource-group "$RGN" --location "$LOC"
+az keyvault secret set  --vault-name "$KVN" --name "$secretName" --value "$USER:$PASSWORD:$ACCOUNT:$WAREHOUSE:$DATABASE:$SCHEMA"
+
+az identity create --resource-group $RGN --name "Suket"
+
